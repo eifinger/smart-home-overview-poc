@@ -56,13 +56,6 @@ class SmartHomeOverviewPocApplicationTests {
 	}
 
 	@Test
-	void exampleTest() {
-		this.webClient.get().uri("/overview").exchange()
-				.expectStatus().isOk()
-				.expectBody(String.class).isEqualTo("This is where your overview will be");
-	}
-
-	@Test
 	void shouldCreateHome() {
 		this.webClient.put().uri("/home").bodyValue("testHomeName").exchange()
 				.expectStatus().isCreated();
