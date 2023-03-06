@@ -3,7 +3,6 @@ package de.eifinger.smarthomeoverviewpoc.domain.thermostat;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 
 import java.util.Random;
@@ -11,9 +10,6 @@ import java.util.Random;
 @Value
 @Builder
 public class Thermostat {
-
-    @Transient
-    private final Random random = new Random();
 
     @Id
     Long id;
@@ -31,11 +27,11 @@ public class Thermostat {
     Long assignedRoom;
 
     public float getHumidity() {
-        return 10.0f + random.nextFloat() * (95.0f - 10.0f);
+        return 10.0f + new Random().nextFloat() * (95.0f - 10.0f);
     }
 
     public float getTemperature() {
-        return 5.0f + random.nextFloat() * (28.0f - 5.0f);
+        return 5.0f + new Random().nextFloat() * (28.0f - 5.0f);
     }
 
     public Thermostat assignToRoom(Long roomId) {
