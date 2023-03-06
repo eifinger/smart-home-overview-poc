@@ -1,6 +1,9 @@
 # smart-home-overview-poc
 
 Spring Boot 2 Application showcasing a smart home rest endpoint
+while using [Spring Webflux](https://spring.io/reactive),
+[R2DBC](https://spring.io/projects/spring-data-r2dbc) and
+[springdoc-openapi](https://github.com/springdoc/springdoc-openapi)
 
 ## Usage
 
@@ -13,7 +16,7 @@ curl --location --request GET 'http://localhost:8080/overview'
 ````
 
 You can also use the Swagger-UI under http://localhost:8080/swagger-ui.html
-
+to see the available endpoints to create homes, rooms and thermostats
 ## Testing the application
 
 All tests are e2e/integration tests which test against [Testcontainers](https://www.testcontainers.org/).
