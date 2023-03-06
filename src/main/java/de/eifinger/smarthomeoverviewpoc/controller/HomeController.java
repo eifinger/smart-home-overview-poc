@@ -4,6 +4,7 @@ import de.eifinger.smarthomeoverviewpoc.domain.home.HomeRepository;
 import de.eifinger.smarthomeoverviewpoc.domain.home.Home;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +24,8 @@ public class HomeController {
 
     @GetMapping("/home/{homeId}")
     public Mono<Home> getHome(@PathVariable Long homeId) {
-        return homeRepository.findById(homeId);
+        return homeRepository.findById(homeId)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
     @PutMapping("/home")

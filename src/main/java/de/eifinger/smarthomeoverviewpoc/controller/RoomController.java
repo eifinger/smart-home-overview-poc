@@ -4,6 +4,7 @@ import de.eifinger.smarthomeoverviewpoc.domain.room.Room;
 import de.eifinger.smarthomeoverviewpoc.domain.room.RoomRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -23,7 +24,8 @@ public class RoomController {
 
     @GetMapping("/room/{roomId}")
     public Mono<Room> getRoom(@PathVariable Long roomId) {
-        return roomRepository.findById(roomId);
+        return roomRepository.findById(roomId)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
     @PutMapping("/home/{homeId}/room")

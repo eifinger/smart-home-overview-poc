@@ -1,5 +1,6 @@
 package de.eifinger.smarthomeoverviewpoc.domain.thermostat;
 
+import de.eifinger.smarthomeoverviewpoc.domain.room.Room;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.data.annotation.Id;
@@ -34,14 +35,15 @@ public class Thermostat {
         return 5.0f + new Random().nextFloat() * (28.0f - 5.0f);
     }
 
-    public Thermostat assignToRoom(Long roomId) {
+    public Thermostat assignToRoom(Room room) {
         return Thermostat.builder()
                 .id(this.id)
                 .name(this.name)
                 .assignedHome(this.assignedHome)
                 .temperature(this.temperature)
                 .humidity(this.humidity)
-                .assignedRoom(roomId)
+                .assignedRoom(room.getId())
+                .assignedHome(room.getHomeId())
                 .build();
     }
 }
