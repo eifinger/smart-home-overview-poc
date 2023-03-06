@@ -32,7 +32,4 @@ jobs:
       - name: Run build with Gradle Wrapper
         run: ./gradlew bootBuildImage --imageName=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Push to ghcr.io
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        run: docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
