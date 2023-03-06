@@ -1,11 +1,13 @@
 package de.eifinger.smarthomeoverviewpoc.controller;
 
+import de.eifinger.smarthomeoverviewpoc.domain.room.RoomRepository;
 import de.eifinger.smarthomeoverviewpoc.domain.thermostat.Thermostat;
 import de.eifinger.smarthomeoverviewpoc.domain.thermostat.ThermostatRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -15,9 +17,11 @@ import java.util.Optional;
 public class ThermostatController {
 
     private final ThermostatRepository thermostatRepository;
+    private final RoomRepository roomRepository;
 
-    public ThermostatController(ThermostatRepository thermostatRepository) {
+    public ThermostatController(ThermostatRepository thermostatRepository, RoomRepository roomRepository) {
         this.thermostatRepository = thermostatRepository;
+        this.roomRepository = roomRepository;
     }
 
     @Operation(summary = "Get all thermostats. Optionally filter by room and/or home.")
@@ -41,7 +45,8 @@ public class ThermostatController {
     public Mono<Thermostat> getThermostat(
             @Parameter(description = "The thermostat id")  @PathVariable Long thermostatId
     ) {
-        return thermostatRepository.findById(thermostatId);
+        return thermostatRepository.findById(thermostatId)
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND)));
     }
 
     @Operation(summary = "Create a new thermostat")
@@ -61,8 +66,12 @@ public class ThermostatController {
             @Parameter(description = "The thermostat id") @PathVariable Long thermostatId,
             @Parameter(description = "The room id") @RequestBody Long roomId
     ) {
-        return thermostatRepository.findById(thermostatId)
-                .flatMap(thermostat -> thermostatRepository.save(thermostat.assignToRoom(roomId)));
-
+        return roomRepository.findById(roomId)
+                .flatMap( room ->
+                        thermostatRepository.findById(thermostatId)
+                                .flatMap(thermostat ->
+                                        thermostatRepository.save(thermostat.assignToRoom(room))
+                                )
+                    );
     }
 }
