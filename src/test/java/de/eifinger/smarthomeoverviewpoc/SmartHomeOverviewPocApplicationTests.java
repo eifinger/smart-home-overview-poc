@@ -24,6 +24,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.net.URI;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @Testcontainers
 @AutoConfigureWebTestClient
 @ContextConfiguration(initializers = SmartHomeOverviewPocApplicationTests.DataSourceInitializer.class)
@@ -94,9 +96,16 @@ class SmartHomeOverviewPocApplicationTests {
 				.hasSize(1);
 
 		var searchUri = URI.create("/thermostat?roomId=%s".formatted(savedRoom.getId()));
-		this.webClient.get().uri(searchUri).exchange()
-				.expectBodyList(Home.class)
-				.hasSize(1);
+		var thermostat = this.webClient.get().uri(searchUri).exchange()
+				.expectBodyList(Thermostat.class)
+				.hasSize(1)
+				.returnResult()
+				.getResponseBody()
+				.get(0);
+		assertThat(thermostat.getAssignedRoom()).isEqualTo(savedRoom.getId());
+		assertThat(thermostat.getId()).isEqualTo(savedThermostat.getId());
+		assertThat(thermostat.getName()).isEqualTo(savedThermostat.getName());
+
 	}
 
 	public static class DataSourceInitializer
