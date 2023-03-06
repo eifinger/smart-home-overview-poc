@@ -1,6 +1,13 @@
 package de.eifinger.smarthomeoverviewpoc;
 
+import de.eifinger.smarthomeoverviewpoc.domain.home.Home;
+import de.eifinger.smarthomeoverviewpoc.domain.home.HomeRepository;
+import de.eifinger.smarthomeoverviewpoc.domain.room.Room;
+import de.eifinger.smarthomeoverviewpoc.domain.room.RoomRepository;
+import de.eifinger.smarthomeoverviewpoc.domain.thermostat.Thermostat;
+import de.eifinger.smarthomeoverviewpoc.domain.thermostat.ThermostatRepository;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -14,6 +21,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.net.URI;
+import java.util.List;
+
 @Testcontainers
 @AutoConfigureWebTestClient
 @ContextConfiguration(initializers = SmartHomeOverviewPocApplicationTests.DataSourceInitializer.class)
@@ -23,11 +33,25 @@ class SmartHomeOverviewPocApplicationTests {
 	@Autowired
 	private WebTestClient webClient;
 
+	@Autowired
+	private HomeRepository homeRepository;
+
+	@Autowired
+	private RoomRepository roomRepository;
+
+	@Autowired
+	private ThermostatRepository thermostatRepository;
+
 	@Container
 	private static final PostgreSQLContainer<?> POSTGRE_SQL_CONTAINER = new PostgreSQLContainer<>("postgres:15.2")
         .withDatabaseName("postgres")
         .withUsername("postgres")
         .withPassword("postgres");
+
+	@BeforeEach
+	void beforeEach() {
+		homeRepository.deleteAll().block();
+	}
 
 	@Test
 	void exampleTest() {
@@ -40,6 +64,39 @@ class SmartHomeOverviewPocApplicationTests {
 	void shouldCreateHome() {
 		this.webClient.put().uri("/home").bodyValue("testHomeName").exchange()
 				.expectStatus().isCreated();
+	}
+
+	@Test
+	void shouldGetAllHomes() {
+		var newHome1 = Home.builder().name("testHome").build();
+		var newHome2 = Home.builder().name("secondTestHome").build();
+		homeRepository.saveAll(List.of(newHome1, newHome2)).blockLast();
+		this.webClient.get().uri("/home").exchange()
+				.expectBodyList(Home.class)
+				.hasSize(2);
+	}
+
+	@Test
+	void shouldAssignThermostatToHome() {
+		var newHome = Home.builder().name("testHome").build();
+		var savedHome = homeRepository.save(newHome).block();
+
+		var newRoom = Room.builder().name("testRoom").homeId(savedHome.getId()).build();
+		var savedRoom = roomRepository.save(newRoom).block();
+
+		var newThermostat = Thermostat.builder().name("testThermostat")
+				.build();
+		var savedThermostat = thermostatRepository.save(newThermostat).block();
+
+		var assignRoomUri = URI.create("/thermostat/%s/assignRoom".formatted(savedThermostat.getId()));
+		this.webClient.post().uri(assignRoomUri).bodyValue(savedRoom.getId()).exchange()
+				.expectBodyList(Thermostat.class)
+				.hasSize(1);
+
+		var searchUri = URI.create("/thermostat?roomId=%s".formatted(savedRoom.getId()));
+		this.webClient.get().uri(searchUri).exchange()
+				.expectBodyList(Home.class)
+				.hasSize(1);
 	}
 
 	public static class DataSourceInitializer

@@ -22,7 +22,7 @@ public class HomeController {
     }
 
     @GetMapping("/home/{homeId}")
-    public Mono<Home> getHome(@PathVariable String homeId) {
+    public Mono<Home> getHome(@PathVariable Long homeId) {
         return homeRepository.findById(homeId);
     }
 
